@@ -24,7 +24,7 @@
 | 7 | Relé de la bomba de vacío | Salida |
 | 8 / 9 | Motor paso a paso: DIR / STEP (200 pasos por vuelta) | Salidas |
 | 10 | Electroválvula de soplado | Salida |
-| 11 | Salida de "paro por barrera": según el comentario, actúa sobre el reset de la placa **[VERIFICAR]** | Salida |
+| 11 | Corte general del aire por barrera (HIGH = aire, LOW = corte). El comentario del código dice "reset", pero está desfasado (ver C3) | Salida |
 | 12 | Barrera de seguridad (HIGH = libre, LOW = interrumpida) | Entrada con pull-up |
 
 > **Comentarios cruzados.** Los comentarios de `setup()` dicen "pin 3 = pistón arriba" y "pin 5 = sube". El código hace lo contrario:
@@ -95,15 +95,20 @@ Confírmalo para ponerle nombres correctos a cada paso en la app.
 - **Consecuencia:** con la barrera cortada, el pin 11 hace pulsos HIGH/LOW en cada llamada. Hoy funciona porque el pulso LOW es el que actúa, pero es por casualidad.
 - **Solución:** quitar el `;`. En la V2, sustituir el método completo (ver C3).
 
-**C3. El paro por barrera reinicia la placa (hipótesis por el comentario del pin 11). [VERIFICAR cableado]**
-- **Qué pasa:** el comentario dice "Activa el pin reset de la placa".
-- **Si es así:**
-  - durante el reinicio **todas las salidas quedan al aire**: válvulas y motor en estado indefinido;
-  - al arrancar, `setup()` **sube el pistón sin mirar la barrera**;
-  - se **pierden los tiempos ajustados** (vuelven a 3 / 1 / 0, no hay EEPROM);
-  - hay que volver a buscar el cero.
-- **Dato extraño:** `pinMode(11, OUTPUT)` pone el pin a LOW unos 0,9 s antes del `digitalWrite(11, HIGH)`. Si estuviera conectado directamente al RESET, la placa se reiniciaría sin fin. Por eso es probable que haya un transistor, relé o condensador intermedio.
-- **Necesito saber:** qué hay conectado exactamente al pin 11.
+**C3. La barrera corta el aire, pero no detiene el motor y el ciclo se reanuda solo. [Actualizado 24-11-2026]**
+- **Información del propietario:**
+  - al poner la mano en la barrera **se corta el aire, sin reset**;
+  - la seta de emergencia va directa a la placa y hace el reset.
+- **Conclusión:**
+  - el pin 11 manda, casi seguro, la **válvula o relé general del aire** (HIGH = aire, LOW = corte);
+  - el comentario "reset de la placa" está desfasado;
+  - encaja con que la placa no se reinicie sin fin al arrancar.
+- **Consecuencias:**
+  - **el motor de la bandeja sigue girando** con la barrera cortada (no necesita aire);
+  - al retirar la mano, la siguiente llamada a `Emer()` **devuelve el aire y el ciclo sigue solo**, sin confirmación;
+  - si la última llamada a `Emer()` del ciclo encuentra la barrera cortada (al retirar la pieza), **el aire queda cortado durante la carga** hasta pulsar START.
+- **Al arrancar:** el aire está cortado unos 0,9 s; después, `setup()` lo devuelve y **sube el pistón sin mirar la barrera**.
+- **Seta (reset):** se pierden los tiempos ajustados (vuelven a 3 / 1 / 0, no hay EEPROM) y hay que volver a buscar el cero.
 
 **C4. Al encender, el pistón se mueve solo.**
 - **Qué pasa:** `setup()` activa la electroválvula de subir (pin 6) sin comprobar la barrera ni esperar a nadie.
