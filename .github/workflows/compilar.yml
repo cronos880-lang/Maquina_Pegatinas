@@ -1,0 +1,35 @@
+name: Compilar Pegatinas
+
+# En cada subida: pruebas en el PC (simulador) y compilación real para Arduino Mega 2560.
+on:
+  push:
+    branches: ["**"]
+  workflow_dispatch:
+
+jobs:
+  pruebas:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pruebas del sketch con el simulador de la máquina
+        run: bash arduino/Pegatinas_Ver_8/pruebas/ejecutar_pruebas.sh
+
+  compilar:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: arduino/setup-arduino-cli@v2
+      - name: Núcleo AVR
+        run: |
+          arduino-cli core update-index
+          arduino-cli core install arduino:avr
+      - name: Librería VirtuinoCM (la original)
+        run: |
+          mkdir -p "$HOME/Arduino/libraries/VirtuinoCM"
+          for f in VirtuinoCM.h VirtuinoCM.cpp; do
+            curl -fsSL -o "$HOME/Arduino/libraries/VirtuinoCM/$f" "https://raw.githubusercontent.com/iliaslamprou/virtuinoCM/master/$f"
+          done
+      - name: Compilar Ver_8 (Arduino Mega 2560)
+        run: arduino-cli compile --fqbn arduino:avr:mega --warnings all arduino/Pegatinas_Ver_8
+      - name: Compilar Ver_7 original (referencia)
+        run: arduino-cli compile --fqbn arduino:avr:mega arduino/Pegatinas_14_01_2024_Ver_7_Full_Doble_Bajad__Barrera

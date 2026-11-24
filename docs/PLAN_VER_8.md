@@ -1,6 +1,6 @@
 # Plan de la Ver_8 (pulido del sketch)
 
-- **Estado:** propuesta, pendiente de aprobación.
+- **Estado:** desarrollada (`arduino/Pegatinas_Ver_8/`), pendiente de probar en la máquina y de tu aprobación.
 - **Base:** `Pegatinas_14_01_2024_Ver_7_Full_Doble_Bajad__Barrera`.
 
 ## Condiciones
@@ -20,7 +20,7 @@
 | START con la barrera cortada | Corta el aire y sigue el ciclo | **No arranca** hasta que la barrera esté libre |
 | Barrera cortada durante el ciclo | Corta el aire, pero el **motor sigue**. Solo se mira en algunos puntos | **Pausa:** corte de aire, motor parado y tiempos congelados. Se mira continuamente |
 | Barrera libre otra vez | El ciclo **sigue solo** | **Sigue parado**. Para continuar: START (reanuda) o PARO (cancela) |
-| Esperando la flecha "PASO 2" (paso 4) | Se mira antes y después | Pendiente de decidir: ¿se ignora, como en la carga? |
+| Esperando la flecha "PASO 2" (paso 4) | Se mira antes y después | **Se ignora** con el pistón arriba; la flecha con la barrera cortada no arranca |
 
 ### Botón PARO / REINICIO (V31)
 
@@ -28,7 +28,7 @@
    - el motor se detiene al momento;
    - se corta el soplado;
    - el pistón sube;
-   - el vacío **se mantiene**;
+   - **se apaga el vacío** (decisión del propietario);
    - se apaga el LED de MARCHA.
 2. **Otra pulsación con la máquina parada:**
    - busca el cero;
@@ -42,12 +42,12 @@
 - Flecha "PASO 2": responde siempre a la primera.
 - Motor sin bloqueo y con rampa. La tablet responde mientras gira.
 - Tiempos SOPLADO / SUBIR / BAJAR con límites y guardados en EEPROM.
-- Velocidad: se mantiene fija salvo que se decida activar el mando.
+- Velocidad: fija (8000) o la del mando, según un interruptor nuevo en Virtuino (V32).
 - **Tiempos límite** en cada movimiento: parada segura y LED del paso parpadeando.
 - **LEDs corregidos:**
   - MARCHA (escribía V4 en lugar de V6);
   - V26 y otros pasos que se quedaban encendidos.
-- Se corrige el `;` de `Emer()`.
+- `Emer()` (con el `;` de más) se sustituye por la vigilancia continua de la barrera.
 - `debug = false`.
 
 ## Cómo se prueba
